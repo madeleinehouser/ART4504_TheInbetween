@@ -55,14 +55,14 @@ public class ButtonCallBack : MonoBehaviour
             if (actions[0] == "LeftHand")
             {
                 hand = "left";
-                Debug.Log("called " + ctx.action);
+                //Debug.Log("called " + ctx.action);
                 main.ButtonTrigger(ctx.ReadValue<float>(), hand);
             }
             // if right controller, rotate to the right
             else if (actions[0] == "RightHand")
             {
                 hand = "right";
-                Debug.Log("called " + ctx.action);
+                //Debug.Log("called " + ctx.action);
                 main.ButtonTrigger(ctx.ReadValue<float>(), hand);
             }
 
@@ -82,14 +82,14 @@ public class ButtonCallBack : MonoBehaviour
             if (actions[0] == "LeftHand")
             {
                 hand = "left";
-                Debug.Log("called " + ctx.action);
+                //Debug.Log("called " + ctx.action);
                 main.ButtonTrigger(ctx.ReadValue<float>(), hand);
             }
             // if right controller, rotate to the right
             else if (actions[0] == "RightHand")
             {
                 hand = "right";
-                Debug.Log("called " + ctx.action);
+                //Debug.Log("called " + ctx.action);
                 main.ButtonTrigger(ctx.ReadValue<float>(), hand);
             }
         }

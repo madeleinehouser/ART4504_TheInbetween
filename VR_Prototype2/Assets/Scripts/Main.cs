@@ -18,53 +18,61 @@ public class Main : MonoBehaviour
     Level currLevel;
     GameStatus status;
     string hand;
-    // left hand - internal
+    // left hand - internal player
     bool internalActive;
-    // right hand - external
+    // right hand - external player
     bool externalActive;
-
     bool hasLoaded;
+    int totalLives;
 
     // timer for each level
-    float startTime;            //level start time - resets every time a new level loads
-    float transitionTime;             //transition start time - resets every time the game ends (duration ends)
-    public float demonDuration;
-    public float playerDuration;
-    public float totalDuration;        //duration of running state
-    float loadingDuration; //duration of transitions (GameWon or GameLost states)
+    float startTime;                        //level start time - resets every time a new level loads
+    float transitionTime;                   //transition start time - resets every time the game ends (duration ends)
+    float loadingDuration;                  //duration of transitions (GameWon or GameLost states)
     
     // level 1 vars
     public float rotationSpeed;
     GameObject room;
     public GameObject visibleDoor;
     GameObject targetDoor;
-    public float thresholdDistance;     // distance door has to be from target position to be considered "winning"
-    float doorVisibleTime;              // total time door is visible when level 1 starts before disappearing
+    public float thresholdDistance;         // distance door has to be from target position to be considered "winning"
+    float doorVisibleTime;                  // total time door is visible when level 1 starts before disappearing
     public bool hasWon;
     public GameObject internalPlayerTime;   // pop up showing internal player time to play
     public GameObject externalPlayerTime;   // pop up showing external player time to play
-    float popUpStart;       // time pop up starts
-    float popUpDuration;    // total time pop up should be visible
+    float popUpStart;                       // time pop up starts
+    float popUpDuration;                    // total time pop up should be visible
     GameObject[] keys;
     int totalKeys;
     bool keyEnabled;
     int keysHeld;
     bool findKeys;
+    bool gameEnded;
+    [SerializeField]
+    private float levelOneTotalDuration;     // duration of running state for level 1
+    public float levelOnePlayerDuration;    // duration of internal player for level 1
+    public float levelOneDemonDuration;     // duration of external player for level 1
 
     // level 2 vars
     public int numKeys;
     public GameObject spawnObject;
     private GameObject recentCube;
     bool pressed;
-    bool gameEnded;
+    [SerializeField]
+    private float levelTwoTotalDuration;     // duration of running state for level 2
+    public float levelTwoPlayerDuration;    // duration of internal player for level 2
+    public float levelTwoDemonDuration;     // duration of external player for level 2
 
     // level 3 vars
     public GameObject audioObject;
     public AudioSource audioSource;
     public GameObject spawnAudio;
-    bool musicActive;
+    public bool musicActive;
+    public float followSpeed;
+    public int musicCollected;
+    public float soundDist;
+    public float levelThreeTotalDuration;   // duration of running state for level 3
 
-    //DetectCollisions col;
 
     // Start is called before the first frame update
     void Start()
@@ -79,7 +87,7 @@ public class Main : MonoBehaviour
         hasLoaded = false;
 
         SceneManager.LoadScene("SpinningRoom", LoadSceneMode.Additive);
-        totalDuration = playerDuration + demonDuration;
+        levelOneTotalDuration = levelOnePlayerDuration + levelOneDemonDuration;
         popUpDuration = 3f;
         loadingDuration = 5f;
         doorVisibleTime = 5f;
@@ -105,12 +113,13 @@ public class Main : MonoBehaviour
         numKeys = 0;
         pressed = false;
         gameEnded = false;
-
-        //win.GetComponent<Canvas>().worldCamera = player;
-        //lose.GetComponent<Canvas>().worldCamera = player;
+        levelTwoTotalDuration = levelTwoPlayerDuration + levelTwoDemonDuration;
 
         // set level 3 vars
         musicActive = false;
+        followSpeed = 0.2f;
+        musicCollected = 0;
+        soundDist = 0.2f;
     }
 
 
@@ -137,26 +146,26 @@ public class Main : MonoBehaviour
                         // load next level scene
                         if ((Time.time - transitionTime) > loadingDuration)
                         {
-                            Debug.Log("transition time ended");
                             transitionCube.SetActive(false);
-                            //win.SetActive(false);
                             currLevel = Level.LEVELTWO;
                             status = GameStatus.RUNNING;
                             startTime = Time.time;
                             internalActive = true;
                             externalActive = true;
+                            gameEnded = false;
                         }
                         break;
                     case GameStatus.LOST:
                         if ((Time.time - transitionTime) > loadingDuration)
                         {
+                            // lose a life
+                            totalLives -= 1;
                             transitionCube.SetActive(false);
-                            Debug.Log("lost duration time ENDED");
-                            //lose.SetActive(false);
                             status = GameStatus.RUNNING;
                             startTime = Time.time;
                             internalActive = true;
                             externalActive = true;
+                            gameEnded = false;
                         }
                         break;
                     default:
@@ -173,24 +182,25 @@ public class Main : MonoBehaviour
                         if ((Time.time - transitionTime) > loadingDuration)
                         {
                             transitionCube.SetActive(false);
-                            //win.SetActive(false);
                             startTime = Time.time;
                             currLevel = Level.LEVELTHREE;
                             status = GameStatus.RUNNING;
                             internalActive = true;
                             externalActive = true;
+                            gameEnded = false;
                         }
 
                         break;
                     case GameStatus.LOST:                        
                         if ((Time.time - transitionTime) > loadingDuration)
                         {
+                            totalLives -= 1;
                             transitionCube.SetActive(false);
-                            //lose.SetActive(false);
                             status = GameStatus.RUNNING;
                             startTime = Time.time;
                             internalActive = true;
                             externalActive = true;
+                            gameEnded = false;
                         }
                         break;
                     default:
@@ -207,26 +217,25 @@ public class Main : MonoBehaviour
                         if ((Time.time - transitionTime) > loadingDuration)
                         {
                             transitionCube.SetActive(false);
-                            //win.SetActive(false);
                             startTime = Time.time;
                             currLevel = Level.LEVELTHREE;
                             status = GameStatus.RUNNING;
-
                             startTime = Time.time;
                             internalActive = true;
                             externalActive = true;
+                            gameEnded = false;
                         }
                         break;
                     case GameStatus.LOST:
                         if ((Time.time - transitionTime) > loadingDuration)
                         {
+                            totalLives -= 1;
                             transitionCube.SetActive(false);
-                            Debug.Log("lost duration time ENDED");
-                            //lose.SetActive(false);
                             status = GameStatus.RUNNING;
                             startTime = Time.time;
                             internalActive = true;
                             externalActive = true;
+                            gameEnded = false;
                         }
                         break;
                     default:
@@ -252,29 +261,31 @@ public class Main : MonoBehaviour
                         Destroy(obj);
                         keysHeld++;
                         keyEnabled = false;
+                        totalLives += 1;
                     }
 
-                    if (h == "LeftHand" && obj.gameObject.tag == "Door")
+                    if (gameEnded)
                     {
-                        if (hasWon)
+                        if (h == "LeftHand" && obj.gameObject.tag == "Door")
                         {
-                            status = GameStatus.WON;
-                            transitionTime = Time.time;
-                            LoadNextLevel("SpinningRoom", "Clutter Room");
-                            transitionCube.SetActive(true);
-                            //win.SetActive(true);
-                            internalActive = false;
-                            externalActive = false;
-                        }
-                        else
-                        {
-                            status = GameStatus.LOST;
-                            transitionTime = Time.time;
-                            //lose.SetActive(true);
-                            transitionCube.SetActive(true);
-                            ReloadLevel("SpinningRoom");
-                            internalActive = false;
-                            externalActive = false;
+                            if (hasWon)
+                            {
+                                status = GameStatus.WON;
+                                transitionTime = Time.time;
+                                LoadNextLevel("SpinningRoom", "Clutter Room");
+                                transitionCube.SetActive(true);
+                                internalActive = false;
+                                externalActive = false;
+                            }
+                            else
+                            {
+                                status = GameStatus.LOST;
+                                transitionTime = Time.time;
+                                transitionCube.SetActive(true);
+                                ReloadLevel("SpinningRoom");
+                                internalActive = false;
+                                externalActive = false;
+                            }
                         }
                     }
                     break;
@@ -301,46 +312,41 @@ public class Main : MonoBehaviour
                                 transitionTime = Time.time;
                                 transitionCube.SetActive(true);
                                 gameEnded = false;
-                                //win.SetActive(true);
                                 LoadNextLevel("Clutter Room", "AudioRoom_Player1");
-                                internalActive = false;
-                                externalActive = false;
                             }
                             else
                             {
                                 status = GameStatus.LOST;
-                                //lose.SetActive(true);
                                 transitionCube.SetActive(true);
                                 numKeys = 0;
                                 gameEnded = false;
                                 ReloadLevel("Clutter Room");
                                 transitionTime = Time.time;
-                                internalActive = false;
-                                externalActive = false;
                             }
                         }
                     }
                     break;
                 case Level.LEVELTHREE:
                     {
-                        if (hasWon)
+                        // only if gameended, check win condition
+                        if (gameEnded)
                         {
-                            status = GameStatus.WON;
-                            transitionTime = Time.time;
-                            transitionCube.SetActive(true);
-                            //win.SetActive(true);
-                            internalActive = false;
-                            externalActive = false;
-                        }
-                        else
-                        {
-                            status = GameStatus.LOST;
-                            //lose.SetActive(true);
-                            transitionCube.SetActive(true);
-                            transitionTime = Time.time;
-                            internalActive = false;
-                            externalActive = false;
-                            ReloadLevel("AudioRoom_Player1");
+                            if (h == "LeftHand" && obj.gameObject.tag == "Door")
+                            {
+                                if (hasWon)
+                                {
+                                    status = GameStatus.WON;
+                                    transitionTime = Time.time;
+                                    transitionCube.SetActive(true);
+                                }
+                                else
+                                {
+                                    status = GameStatus.LOST;
+                                    transitionCube.SetActive(true);
+                                    transitionTime = Time.time;
+                                    ReloadLevel("AudioRoom_Player1");
+                                }
+                            }
                         }
                     }
                     break;
@@ -380,8 +386,7 @@ public class Main : MonoBehaviour
                 Debug.Log("found total keys " + totalKeys);
                 for (int i = 0; i < totalKeys; i++)
                 {
-                    Debug.Log("disabled key " + i);
-
+                    //Debug.Log("disabled key " + i);
                     keys[i].SetActive(false);
                 }
                 findKeys = true;
@@ -398,7 +403,7 @@ public class Main : MonoBehaviour
             }
 
             // demon controls (external player)
-            if ((Time.time - startTime) < playerDuration)
+            if ((Time.time - startTime) < levelOnePlayerDuration)
             {
                 if (externalActive == false)
                 {
@@ -416,16 +421,14 @@ public class Main : MonoBehaviour
 
             }
             // player controls (internal player)
-            else if ((Time.time - startTime) >= playerDuration && (Time.time - startTime) < totalDuration)
+            else if ((Time.time - startTime) >= levelOnePlayerDuration && (Time.time - startTime) < levelOneTotalDuration)
             {
                 // first time internal player is activated
                 if (internalActive == false)
                 {
-                    Debug.Log("internal player ime");
+                    Debug.Log("internal player time");
                     internalActive = true;
                     externalActive = false;
-                    internalPlayerTime.SetActive(true);
-
                     internalPlayerTime.SetActive(true);
                     externalPlayerTime.SetActive(false);
 
@@ -440,12 +443,14 @@ public class Main : MonoBehaviour
 
             }
             // if time exceeds total playing time of the level
-            else if ((Time.time - startTime) >= totalDuration)
+            else if ((Time.time - startTime) >= levelOneTotalDuration)
             {
+                gameEnded = true;
                 Debug.Log("level ended, please interact with door");
                 // show door after level ends
                 visibleDoor.SetActive(true);
-
+                internalActive = false;
+                externalActive = false;
                 float totalDoorDistance = Vector3.Distance(visibleDoor.transform.position, targetDoor.transform.position);
                 if (totalDoorDistance <= thresholdDistance)  ///check if the two doors are less than x meters apart
                 {
@@ -464,7 +469,7 @@ public class Main : MonoBehaviour
         if (status == GameStatus.RUNNING)
         {         
             // demon controls (external player)
-            if ((Time.time - startTime) < playerDuration)
+            if ((Time.time - startTime) < levelTwoPlayerDuration)
             {
                 if (externalActive == false)
                 {
@@ -482,7 +487,7 @@ public class Main : MonoBehaviour
 
             }
             // player controls (internal player)
-            else if ((Time.time - startTime) >= playerDuration && (Time.time - startTime) < totalDuration)
+            else if ((Time.time - startTime) >= levelTwoPlayerDuration && (Time.time - startTime) < levelTwoTotalDuration)
             {
                 // first time internal player is activated
                 if (internalActive == false)
@@ -504,12 +509,14 @@ public class Main : MonoBehaviour
                 }
             }
             // if time exceeds total playing time of the level
-            else if ((Time.time - startTime) >= totalDuration)
+            else if ((Time.time - startTime) >= levelTwoTotalDuration)
             {
                 gameEnded = true;
                 Debug.Log("level ended, please interact with door");
-
-                if (numKeys >= 3)  //check if all keys have been collected
+                internalActive = false;
+                externalActive = false;
+                //check if all keys have been collected
+                if (numKeys >= 3)
                 {
                     hasWon = true;
                 }
@@ -524,30 +531,41 @@ public class Main : MonoBehaviour
 
     void updateLevelThree()
     {
-        //rightHand.tag = "Audio";
         if (status == GameStatus.RUNNING)
         {
-            if (audioObject == null)
+            // game playing
+            if ((Time.time - startTime) < levelThreeTotalDuration)
             {
-                audioObject = GameObject.Find("AudioObject1");
-                if (audioObject == null)
-                    Debug.Log("cannot found audio object");
-                else
-                    audioSource = audioObject.GetComponent<AudioSource>();
+                // check that the music object has been instantiated
+                if (musicActive && audioObject != null)
+                {
+                    // calculate Vector from audio object and right controller (external player)
+                    Vector3 controllerPos = rightHand.transform.position;
+                    Vector3 soundPos = audioObject.transform.position;
 
+                    // normalize vector so length of 1
+                    Vector3 distVector = (controllerPos - soundPos).normalized;
+
+                    // add vector to sound position each frame to follow audio object
+                    audioObject.transform.position += distVector * Time.deltaTime * followSpeed;
+                }
             }
             // player loses
-            if ((Time.time - startTime) >= totalDuration)
+            else
             {
-                status = GameStatus.LOST;
-                //lose.SetActive(true);
-                transitionCube.SetActive(true);
-                ReloadLevel("AudioRoom_Player1"); //reload the existing 
-                transitionTime = Time.time;
+                gameEnded = true;
+                Debug.Log("level ended, please interact with door");
                 internalActive = false;
                 externalActive = false;
-                //rightHand.SetActive(false);
-                //leftHand.SetActive(false);
+
+                if (musicCollected >= 3) 
+                {
+                    hasWon = true;
+                }
+                else
+                {
+                    hasWon = false;
+                }
             }
         }
     }
@@ -558,8 +576,8 @@ public class Main : MonoBehaviour
     public void ButtonTrigger(float value, string h)
     {
         hand = h;
-        Debug.Log("value for trigger: " + value);
-        Debug.Log("hand is: " + hand);
+        //Debug.Log("value for trigger: " + value);
+        //Debug.Log("hand is: " + hand);
         switch (currLevel)
         {
             case Level.LEVELONE:
@@ -597,16 +615,30 @@ public class Main : MonoBehaviour
             case Level.LEVELTHREE:
                 if (value > 0.1f)
                 {
-                    if (hand == "right" && externalActive)
+                    // spawn new sound if no active music is playing
+                    if (hand == "right" && !musicActive && externalActive)
                     {
-                        if (!musicActive)
+                        Debug.Log("trying to spawn new sound");
+                        // spawn in new sound
+                        OnPressed();
+                        musicActive = true;
+                    }
+
+                    // internal player trying to select where they think sound is 
+                    if (hand == "left" && internalActive)
+                    {
+                        // check if internal player clicked on audioObject
+                        if (musicActive && audioObject != null)
                         {
-                            // spawn new audio object
-                            audioObject = Instantiate(spawnAudio, rightHand.transform.position, rightHand.transform.rotation);
-                            musicActive = true;
+                            float distFromSound = Vector3.Distance(leftHand.transform.position, audioObject.transform.position);
+                            if (distFromSound <= soundDist)
+                            {
+                                musicCollected += 1;
+                                Destroy(audioObject);
+                                musicActive = false;
+                            }
                         }
-                       
-                    }                 
+                    }
                 }
                     break;
             default:
@@ -670,20 +702,29 @@ public class Main : MonoBehaviour
     void OnPressed()
     {
         // should only be called by external player 2 (right hand)
-        if (externalActive && externalPlayerTime)
+        if (externalActive)
         {
-            recentCube = Instantiate(spawnObject, rightHand.transform.position, rightHand.transform.rotation);
-            //newobject enable the physics
+            if (currLevel == Level.LEVELTWO)
+            {
+                recentCube = Instantiate(spawnObject, rightHand.transform.position, rightHand.transform.rotation);
+                //newobject enable the physics
 
-            Rigidbody rigidbody = recentCube.GetComponent<Rigidbody>();
-            rigidbody.isKinematic = true;
+                Rigidbody rigidbody = recentCube.GetComponent<Rigidbody>();
+                rigidbody.isKinematic = true;
+            }            
+        }
+        if (currLevel == Level.LEVELTHREE)
+        {
+            // spawn new audio object
+            audioObject = Instantiate(spawnAudio, rightHand.transform.position, rightHand.transform.rotation);
+            audioSource = audioObject.GetComponent<AudioSource>();
         }
     }
 
     void OnRelease()
     {
         // should only be called by external player 2 (right hand)
-        if (externalActive && externalPlayerTime)
+        if (externalActive)
         {
             Rigidbody rigidbody = recentCube.GetComponent<Rigidbody>();
             rigidbody.isKinematic = false;
