@@ -8,11 +8,15 @@ using UnityEngine.XR.OpenXR.Input;
 public class ButtonCallBack : MonoBehaviour
 {
     public InputActionReference trigger;
-    public InputActionReference triggerPress;
+    public InputActionReference keypadPress;
     public InputActionReference keypadTouch;
 
     GameObject mainGameObject;
     Main main;
+    UIManager ui;
+
+    Vector2 lastTouchedRight;
+    Vector2 lastTouchedLeft;
 
     string hand;
 
@@ -21,13 +25,14 @@ public class ButtonCallBack : MonoBehaviour
     {
         mainGameObject = GameObject.Find("Manager");
         main = mainGameObject.GetComponentInChildren<Main>();
-        //assert(main != null);
+        
+        ui = GameObject.Find("ScreenUI").GetComponentInChildren<UIManager>();
 
         trigger.action.Enable();
         trigger.action.performed += OnButtonTrigger;
 
-        triggerPress.action.Enable();
-        triggerPress.action.performed += OnButtonPress;
+        keypadPress.action.Enable();
+        keypadPress.action.performed += OnKeypadPress;
 
         keypadTouch.action.Enable();
         keypadTouch.action.performed += OnKeypadTouch;
@@ -69,30 +74,29 @@ public class ButtonCallBack : MonoBehaviour
         }
     }
 
-    protected void OnButtonPress(InputAction.CallbackContext ctx)
+    protected void OnKeypadPress(InputAction.CallbackContext ctx)
     {
         //Debug.Log("pressing left");
         float v = ctx.ReadValue<float>();
 
-        if (ctx.ReadValue<float>() > 0.1f)
-        {
-            InputAction act = ctx.action;
+           InputAction act = ctx.action;
             string action = ctx.action.ToString();
             string[] actions = action.Split('/');
             if (actions[0] == "LeftHand")
             {
                 hand = "left";
-                //Debug.Log("called " + ctx.action);
-                main.ButtonTrigger(ctx.ReadValue<float>(), hand);
+                //Debug.Log("called " + ctx.action);            
+                ui.ButtonPress(lastTouchedLeft, hand);
+
             }
             // if right controller, rotate to the right
             else if (actions[0] == "RightHand")
             {
                 hand = "right";
                 //Debug.Log("called " + ctx.action);
-                main.ButtonTrigger(ctx.ReadValue<float>(), hand);
+                ui.ButtonPress(lastTouchedRight, hand);
             }
-        }
+        
     }
 
     protected void OnKeypadTouch(InputAction.CallbackContext ctx)
@@ -109,6 +113,7 @@ public class ButtonCallBack : MonoBehaviour
             hand = "left";
           //  Debug.Log("called " + ctx.action);
             main.ButtonKeypadTouch(ctx.ReadValue<Vector2>(), hand);
+            lastTouchedLeft = ctx.ReadValue<Vector2>();
         }
         // if right controller, rotate to the right
         else if (actions[0] == "RightHand")
@@ -116,6 +121,7 @@ public class ButtonCallBack : MonoBehaviour
             hand = "right";
          //   Debug.Log("called " + ctx.action);
             main.ButtonKeypadTouch(ctx.ReadValue<Vector2>(), hand);
+            lastTouchedRight = ctx.ReadValue<Vector2>();
         }
     }
 
