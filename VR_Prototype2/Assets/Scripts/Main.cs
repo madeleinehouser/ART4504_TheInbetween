@@ -51,6 +51,7 @@ public class Main : MonoBehaviour
     private float levelOneTotalDuration;    // duration of running state for level 1
     public float levelOnePlayerDuration;    // duration of internal player for level 1
     public float levelOneDemonDuration;     // duration of external player for level 1
+    float controllerThreshold;              // distance controller has to be to collect object
 
     // level 2 vars
     public int numKeys;                     // number of keys collected in level 2
@@ -79,21 +80,21 @@ public class Main : MonoBehaviour
         leftHand = GameObject.Find("LeftHand");
         rightHand = GameObject.Find("RightHand");
         transitionCube.SetActive(false);
-        internalActive = true;      // change to false later
-        externalActive = true;      // change to false later;
+        internalActive = false;      // change to false later
+        externalActive = false;      // change to false later;
         hasWon = true;
         hasLoaded = false;
         transportPlayer = new Vector3(-9.81000f, 2.94899f, 4.5982666f);
 
-        SceneManager.LoadScene("AudioRoom_Player1", LoadSceneMode.Additive);
+        SceneManager.LoadScene("SpinningRoom", LoadSceneMode.Additive);
         levelOneTotalDuration = levelOnePlayerDuration + levelOneDemonDuration;
         popUpDuration = 3f;
-        loadingDuration = 5f;
+        loadingDuration = 20f;
         doorVisibleTime = 5f;
 
         //set everything to start level one
         startTime = Time.time;
-        currLevel = Level.LEVELTHREE;
+        currLevel = Level.LEVELONE;
         status = GameStatus.RUNNING;
         keyEnabled = false;
         keysHeld = 0;
@@ -144,15 +145,15 @@ public class Main : MonoBehaviour
                         break;
                     case GameStatus.WON:
                         // load next level scene
-                        if ((Time.time - transitionTime) > loadingDuration)
+                        if ((Time.time - transitionTime) > loadingDuration)     // going to next level
                         {
                             //transitionCube.SetActive(false);
                             player.transform.position = Vector3.zero;
                             currLevel = Level.LEVELTWO;
                             status = GameStatus.RUNNING;
                             startTime = Time.time;
-                            internalActive = true;
-                            externalActive = true;
+                            //internalActive = true;
+                            //externalActive = true;
                             levelEnded = false;
                             levelEndedObject.SetActive(false);
                         }
@@ -167,8 +168,8 @@ public class Main : MonoBehaviour
 
                             status = GameStatus.RUNNING;
                             startTime = Time.time;
-                            internalActive = true;
-                            externalActive = true;
+                            //internalActive = true;
+                            //externalActive = true;
                             levelEnded = false;
                             levelEndedObject.SetActive(false);
                         }
@@ -184,7 +185,7 @@ public class Main : MonoBehaviour
                         updateLevelTwo();
                         break;
                     case GameStatus.WON:                        
-                        if ((Time.time - transitionTime) > loadingDuration)
+                        if ((Time.time - transitionTime) > loadingDuration)     // going to next level
                         {
                             //transitionCube.SetActive(false);
                             player.transform.position = Vector3.zero;
@@ -192,8 +193,8 @@ public class Main : MonoBehaviour
                             startTime = Time.time;
                             currLevel = Level.LEVELTHREE;
                             status = GameStatus.RUNNING;
-                            internalActive = true;
-                            externalActive = true;
+                            //internalActive = false;
+                            //externalActive = false;
                             levelEnded = false;
                             levelEndedObject.SetActive(false);
 
@@ -201,7 +202,7 @@ public class Main : MonoBehaviour
 
                         break;
                     case GameStatus.LOST:                        
-                        if ((Time.time - transitionTime) > loadingDuration)
+                        if ((Time.time - transitionTime) > loadingDuration)     // going to same level
                         {
                             keysHeld -= 1;
                             //transitionCube.SetActive(false);
@@ -209,8 +210,8 @@ public class Main : MonoBehaviour
 
                             status = GameStatus.RUNNING;
                             startTime = Time.time;
-                            internalActive = true;
-                            externalActive = true;
+                            //internalActive = false;
+                            //externalActive = false;
                             levelEnded = false;
                             levelEndedObject.SetActive(false);
                         }
@@ -235,8 +236,8 @@ public class Main : MonoBehaviour
                             currLevel = Level.LEVELTHREE;
                             status = GameStatus.RUNNING;
                             startTime = Time.time;
-                            internalActive = true;
-                            externalActive = true;
+                            //internalActive = false;
+                            //externalActive = false;
                             levelEnded = false;
                             levelEndedObject.SetActive(false);
                         }
@@ -250,8 +251,8 @@ public class Main : MonoBehaviour
 
                             status = GameStatus.RUNNING;
                             startTime = Time.time;
-                            internalActive = true;
-                            externalActive = true;
+                            internalActive = false;
+                            externalActive = false;
                             levelEnded = false;
                             levelEndedObject.SetActive(false);
                         }
@@ -268,41 +269,27 @@ public class Main : MonoBehaviour
 
     public void handCollided(string h, GameObject obj)
     {
+        if (currLevel == Level.LEVELONE)
+        {
+            if (h == "LeftHand" && obj.gameObject.tag == "Key")
+            {
+                Debug.Log("TOUCHED KEY");
+                Destroy(obj);
+                keysHeld++;
+                keyEnabled = false;
+            }
+        }
         if (internalActive)
         {
-            switch (currLevel)
-            {
-                case Level.LEVELONE:
-                    if (h == "LeftHand" && obj.gameObject.tag == "Key")
-                    {
-                        Debug.Log("TOUCHED KEY");
-                        Destroy(obj);
-                        keysHeld++;
-                        keyEnabled = false;
-                    }
-                    break;
-
-                case Level.LEVELTWO:
+            if (currLevel == Level.LEVELTWO)
+            { 
                     Debug.Log(h);
                     if (h == "LeftHand" && obj.gameObject.tag == "Key")
                     {
                         Debug.Log("TOUCHED KEY");
                         Destroy(obj);
                         numKeys++; 
-                    }
-                    break;
-
-                case Level.LEVELTHREE:
-                    //{
-                        // only if level ended, check win condition
-                        //if (levelEnded)
-                        //{
-                            
-                        //}
-                    //}
-                    break;
-                default:
-                    break;
+                    }              
             }
         }
         else if (levelEnded)
@@ -353,7 +340,8 @@ public class Main : MonoBehaviour
                             //transitionCube.SetActive(true);
                             // test transport of player
                             player.transform.position = transportPlayer; //teleport to win room
-
+                            internalActive = false;
+                            externalActive = false;
                             levelEnded = false;
                             levelEndedObject.SetActive(false);
                             LoadNextLevel("Clutter Room", "AudioRoom_Player1");
@@ -363,7 +351,8 @@ public class Main : MonoBehaviour
                             status = GameStatus.LOST;
                             //transitionCube.SetActive(true);
                             player.transform.position = transportPlayer;
-                            Debug.Log("tried to teleport");
+                            internalActive = false;
+                            externalActive = false;
                             numKeys = 0;
                             levelEnded = false;
                             levelEndedObject.SetActive(false);
@@ -381,7 +370,8 @@ public class Main : MonoBehaviour
                             transitionTime = Time.time;
                             //transitionCube.SetActive(true);
                             player.transform.position = transportPlayer;
-
+                            internalActive = false;
+                            externalActive = false;
                             levelEndedObject.SetActive(false);
                         }
                         else
@@ -389,7 +379,8 @@ public class Main : MonoBehaviour
                             status = GameStatus.LOST;
                             //transitionCube.SetActive(true);
                             player.transform.position = transportPlayer;
-
+                            internalActive = false;
+                            externalActive = false;
                             transitionTime = Time.time;
                             levelEndedObject.SetActive(false);
                             ReloadLevel("AudioRoom_Player1");
@@ -439,10 +430,14 @@ public class Main : MonoBehaviour
                 findKeys = true;
             }
 
-            if (!keyEnabled)
+            if (!keyEnabled && keysHeld != 5)
             {
                 Debug.Log("enabling key");
                 int randomKey = Random.Range(1, totalKeys);
+                while (keys[randomKey] == null)
+                {
+                    randomKey = Random.Range(1, totalKeys);
+                }   
                 Debug.Log(randomKey);
                 GameObject key = keys[randomKey];
                 key.SetActive(true);
@@ -772,7 +767,9 @@ public class Main : MonoBehaviour
             if (currLevel == Level.LEVELTWO)
             {
                 // instantiate a new object where the right controller is
-                recentCube = Instantiate(EventSystem.current.currentSelectedGameObject.transform.GetChild(0).gameObject, rightHand.transform.position, rightHand.transform.rotation);
+                //recentCube = Instantiate(EventSystem.current.currentSelectedGameObject.transform.GetChild(0).gameObject, rightHand.transform.position, rightHand.transform.rotation);
+                recentCube = Instantiate(spawnObject, rightHand.transform.position, rightHand.transform.rotation);
+
 
                 Rigidbody rigidbody = recentCube.GetComponent<Rigidbody>();
                 rigidbody.isKinematic = true;

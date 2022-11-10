@@ -76,7 +76,6 @@ public class ButtonCallBack : MonoBehaviour
 
     protected void OnKeypadPress(InputAction.CallbackContext ctx)
     {
-        //Debug.Log("pressing left");
         float v = ctx.ReadValue<float>();
 
            InputAction act = ctx.action;

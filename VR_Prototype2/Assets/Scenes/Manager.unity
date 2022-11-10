@@ -379,7 +379,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger: {fileID: 2526168894431210536, guid: e0ca4504471ca124088e1e2cfe6804ae, type: 3}
-  keypadPress: {fileID: 0}
+  keypadPress: {fileID: -149401235567842990, guid: e0ca4504471ca124088e1e2cfe6804ae, type: 3}
   keypadTouch: {fileID: 7596212294181904713, guid: e0ca4504471ca124088e1e2cfe6804ae, type: 3}
 --- !u!135 &76457958
 SphereCollider:
@@ -2135,13 +2135,13 @@ MonoBehaviour:
   externalPlayerTime: {fileID: 1004650737}
   levelEndedObject: {fileID: 884023281}
   levelOneTotalDuration: 0
-  levelOnePlayerDuration: 3
-  levelOneDemonDuration: 3
+  levelOnePlayerDuration: 30
+  levelOneDemonDuration: 30
   numKeys: 0
   spawnObject: {fileID: 8595583974409462697, guid: 990ddfd067e1f534aaa8b682432f40e9, type: 3}
   levelTwoTotalDuration: 0
-  levelTwoPlayerDuration: 3
-  levelTwoDemonDuration: 3
+  levelTwoPlayerDuration: 60
+  levelTwoDemonDuration: 60
   audioObject: {fileID: 6042237912919096823, guid: ec4f9a13469ee7147a276a9fc318b79b, type: 3}
   audioSource: {fileID: 0}
   spawnAudio: {fileID: 6042237912919096823, guid: ec4f9a13469ee7147a276a9fc318b79b, type: 3}
@@ -2149,7 +2149,7 @@ MonoBehaviour:
   followSpeed: 0
   musicCollected: 0
   soundDist: 0
-  levelThreeTotalDuration: 30
+  levelThreeTotalDuration: 60
 --- !u!1001 &636634950
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4331,7 +4331,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1376403750
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4436,7 +4436,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   trigger: {fileID: -5684558904543120851, guid: e0ca4504471ca124088e1e2cfe6804ae, type: 3}
-  keypadPress: {fileID: 0}
+  keypadPress: {fileID: -3683315366864426127, guid: e0ca4504471ca124088e1e2cfe6804ae, type: 3}
   keypadTouch: {fileID: 3396702884570900202, guid: e0ca4504471ca124088e1e2cfe6804ae, type: 3}
 --- !u!135 &1394302966
 SphereCollider:

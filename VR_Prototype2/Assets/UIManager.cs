@@ -38,7 +38,7 @@ public class UIManager : MonoBehaviour
         float y = value.y;
         if (currLevel == 2)
         {
-
+          
         }
         else if (currLevel == 3)
         {
