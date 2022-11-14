@@ -13,8 +13,6 @@ public class HandInteractions : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
-
         handName = this.gameObject.name;
         hand = this.gameObject;
     }

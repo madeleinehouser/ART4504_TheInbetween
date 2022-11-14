@@ -77,24 +77,23 @@ public class ButtonCallBack : MonoBehaviour
     protected void OnKeypadPress(InputAction.CallbackContext ctx)
     {
         float v = ctx.ReadValue<float>();
-
-           InputAction act = ctx.action;
-            string action = ctx.action.ToString();
-            string[] actions = action.Split('/');
-            if (actions[0] == "LeftHand")
-            {
-                hand = "left";
-                //Debug.Log("called " + ctx.action);            
-                ui.ButtonKeypadPress(lastTouchedLeft, hand);
-
-            }
-            // if right controller, rotate to the right
-            else if (actions[0] == "RightHand")
-            {
-                hand = "right";
-                //Debug.Log("called " + ctx.action);
-                ui.ButtonKeypadPress(lastTouchedRight, hand);
-            }
+        
+        InputAction act = ctx.action;
+        string action = ctx.action.ToString();
+        string[] actions = action.Split('/');
+        if (actions[0] == "LeftHand")
+        {
+            hand = "left";
+            //Debug.Log("called " + ctx.action);            
+            ui.ButtonKeypadPress(lastTouchedLeft, hand);
+        }
+        // if right controller, rotate to the right
+        else if (actions[0] == "RightHand")
+        {
+            hand = "right";
+            //Debug.Log("called " + ctx.action);
+            ui.ButtonKeypadPress(lastTouchedRight, hand);
+        }
         
     }
 

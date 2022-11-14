@@ -23,6 +23,8 @@ public class Main : MonoBehaviour
     bool hasLoaded;                         // make sure the whole scene has loaded
     bool hasWon;                            // check if the internal player has won or lost
     Vector3 transportPlayer;
+    GameObject uiObj;
+    UIManager ui;
 
     // timer for each level
     float startTime;                        //level start time - resets every time a new level loads
@@ -85,8 +87,10 @@ public class Main : MonoBehaviour
         hasWon = true;
         hasLoaded = false;
         transportPlayer = new Vector3(-9.81000f, 2.94899f, 4.5982666f);
+        uiObj = GameObject.Find("ScreenUI");
+        ui = uiObj.GetComponentInChildren<UIManager>();
 
-        SceneManager.LoadScene("SpinningRoom", LoadSceneMode.Additive);
+        SceneManager.LoadScene("AudioRoom_Player1", LoadSceneMode.Additive);
         levelOneTotalDuration = levelOnePlayerDuration + levelOneDemonDuration;
         popUpDuration = 3f;
         loadingDuration = 20f;
@@ -94,7 +98,7 @@ public class Main : MonoBehaviour
 
         //set everything to start level one
         startTime = Time.time;
-        currLevel = Level.LEVELONE;
+        currLevel = Level.LEVELTHREE;
         status = GameStatus.RUNNING;
         keyEnabled = false;
         keysHeld = 0;
@@ -129,6 +133,8 @@ public class Main : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        int level = getLevel();
+        ui.SetLevelMenu(level);
         if (!hasLoaded)
         {
             hasLoaded = true;
@@ -314,16 +320,23 @@ public class Main : MonoBehaviour
                         }
                         else
                         {
-                            status = GameStatus.LOST;
-                            transitionTime = Time.time;
-                            //transitionCube.SetActive(true);
-                            // test transport of player
-                            player.transform.position = transportPlayer;
-
-                            ReloadLevel("SpinningRoom");
-                            internalActive = false;
-                            externalActive = false;
-                            levelEndedObject.SetActive(false);
+                            status = GameStatus.LOST;                            
+                            // check how many lives player has left, if 0, transport to "lose" room
+                            if (keysHeld == 0)
+                            {
+                                // turn off "transition" room and turn on "lose" room
+                                player.transform.position = transportPlayer;
+                            }
+                            else
+                            {
+                                player.transform.position = transportPlayer;
+                                transitionTime = Time.time;
+                                ReloadLevel("SpinningRoom");
+                                internalActive = false;
+                                externalActive = false;
+                                levelEndedObject.SetActive(false);
+                            }
+                            
                         }
                     }
                     break;
@@ -349,15 +362,25 @@ public class Main : MonoBehaviour
                         else
                         {
                             status = GameStatus.LOST;
-                            //transitionCube.SetActive(true);
-                            player.transform.position = transportPlayer;
-                            internalActive = false;
-                            externalActive = false;
-                            numKeys = 0;
-                            levelEnded = false;
-                            levelEndedObject.SetActive(false);
-                            ReloadLevel("Clutter Room");
-                            transitionTime = Time.time;
+
+                            // check how many lives player has left, if 0, transport to "lose" room
+                            if (keysHeld == 0)
+                            {
+                                // turn off "transition" room and turn on "lose" room
+                                player.transform.position = transportPlayer;
+                            }
+                            else
+                            {
+                                player.transform.position = transportPlayer;
+                                internalActive = false;
+                                externalActive = false;
+                                numKeys = 0;
+                                levelEnded = false;
+                                levelEndedObject.SetActive(false);
+                                ReloadLevel("Clutter Room");
+                                transitionTime = Time.time;
+                            }
+                            
                         }
                     }
                     break;
@@ -368,7 +391,7 @@ public class Main : MonoBehaviour
                         {
                             status = GameStatus.WON;
                             transitionTime = Time.time;
-                            //transitionCube.SetActive(true);
+                            // turn off "transition" room and turn on "win" room
                             player.transform.position = transportPlayer;
                             internalActive = false;
                             externalActive = false;
@@ -377,13 +400,21 @@ public class Main : MonoBehaviour
                         else
                         {
                             status = GameStatus.LOST;
-                            //transitionCube.SetActive(true);
-                            player.transform.position = transportPlayer;
-                            internalActive = false;
-                            externalActive = false;
-                            transitionTime = Time.time;
-                            levelEndedObject.SetActive(false);
-                            ReloadLevel("AudioRoom_Player1");
+                            // check how many lives player has left, if 0, transport to "lose" room
+                            if (keysHeld == 0)
+                            {
+                                // turn off "transition" room and turn on "lose" room
+                                player.transform.position = transportPlayer;
+                            }
+                            else
+                            {
+                                player.transform.position = transportPlayer;
+                                internalActive = false;
+                                externalActive = false;
+                                transitionTime = Time.time;
+                                levelEndedObject.SetActive(false);
+                                ReloadLevel("AudioRoom_Player1");
+                            }
                         }
                     }
                     break;
@@ -700,7 +731,7 @@ public class Main : MonoBehaviour
         }
     }
 
-    public void ButtonTriggerPress(float value, string h)
+    public void ButtonKeypadTouch(float value, string h)
     {
 
         switch (currLevel)
@@ -709,9 +740,10 @@ public class Main : MonoBehaviour
                 
                 break;
             case Level.LEVELTWO:
-               
+                ui.SetLevelMenu(2);
                 break;
             case Level.LEVELTHREE:
+                ui.SetLevelMenu(3);
                 break;
             default:
                 break;
@@ -767,6 +799,7 @@ public class Main : MonoBehaviour
             if (currLevel == Level.LEVELTWO)
             {
                 // instantiate a new object where the right controller is
+                GameObject clone = ui.getCurrentSelectedButton();
                 //recentCube = Instantiate(EventSystem.current.currentSelectedGameObject.transform.GetChild(0).gameObject, rightHand.transform.position, rightHand.transform.rotation);
                 recentCube = Instantiate(spawnObject, rightHand.transform.position, rightHand.transform.rotation);
 
@@ -779,6 +812,7 @@ public class Main : MonoBehaviour
         {
             // spawn new audio object
             Debug.Log("instantin sou;" + EventSystem.current.currentSelectedGameObject.transform.GetChild(0).gameObject.name);
+            GameObject clone = ui.getCurrentSelectedButton();
             audioObject = Instantiate(EventSystem.current.currentSelectedGameObject.transform.GetChild(0).gameObject, rightHand.transform.position, rightHand.transform.rotation);
             audioSource = audioObject.GetComponent<AudioSource>();
             
@@ -795,7 +829,15 @@ public class Main : MonoBehaviour
         }
     }
 
-
+    public int getLevel()
+    {
+        if (currLevel == Level.LEVELONE)
+            return 1;
+        else if (currLevel == Level.LEVELTWO)
+            return 2;
+        else
+            return 3;
+    }
 
     void LoadNextLevel(string unloadScene, string loadScene)
     {
@@ -808,5 +850,4 @@ public class Main : MonoBehaviour
         SceneManager.UnloadSceneAsync(loadScene);
         SceneManager.LoadScene(loadScene, LoadSceneMode.Additive);
     }
-
 }
