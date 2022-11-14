@@ -84,7 +84,7 @@ public class ButtonCallBack : MonoBehaviour
         if (actions[0] == "LeftHand")
         {
             hand = "left";
-            //Debug.Log("called " + ctx.action);            
+            //Debug.Log("called " + ctx.action);           
             ui.ButtonKeypadPress(lastTouchedLeft, hand);
         }
         // if right controller, rotate to the right
