@@ -90,7 +90,7 @@ public class Main : MonoBehaviour
         uiObj = GameObject.Find("ScreenUI");
         ui = uiObj.GetComponentInChildren<UIManager>();
 
-        SceneManager.LoadScene("AudioRoom_Player1", LoadSceneMode.Additive);
+        SceneManager.LoadScene("Clutter Room", LoadSceneMode.Additive);
         levelOneTotalDuration = levelOnePlayerDuration + levelOneDemonDuration;
         popUpDuration = 3f;
         loadingDuration = 20f;
@@ -98,7 +98,7 @@ public class Main : MonoBehaviour
 
         //set everything to start level one
         startTime = Time.time;
-        currLevel = Level.LEVELTHREE;
+        currLevel = Level.LEVELTWO;
         status = GameStatus.RUNNING;
         keyEnabled = false;
         keysHeld = 0;

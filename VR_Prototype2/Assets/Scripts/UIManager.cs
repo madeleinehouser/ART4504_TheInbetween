@@ -51,24 +51,24 @@ public class UIManager : MonoBehaviour
                 EventSystem.current.SetSelectedGameObject(levelMenu2.transform.GetChild(0).gameObject);
                 currObjSelected = EventSystem.current.currentSelectedGameObject.gameObject;
                 selectButton = currObjSelected.transform.GetChild(1).gameObject;
-                selectButton.SetActive(true);
+                //selectButton.SetActive(true);
             }
 
             // check direction
             if (Mathf.Abs(x) > Mathf.Abs(y))    // move either right or left
             {
-                if (x > 0)  // move left
+                if (x < 0)  // move left
                 {
                     // make sure we can move left
                     if (currentPosX > 0 && currentPosX <= 7)
                     {
                         currentPosX -= 1;
-                        currObjSelected.SetActive(false);
+                        //currObjSelected.SetActive(false);
                         currentSelected -= 1;
                         EventSystem.current.SetSelectedGameObject(levelMenu2.transform.GetChild(currentSelected).gameObject);
                         currObjSelected = EventSystem.current.currentSelectedGameObject.gameObject;
                         selectButton = currObjSelected.transform.GetChild(0).gameObject;
-                        selectButton.SetActive(true);
+                        //selectButton.SetActive(true);
                     }
                 }
                 else // move right
@@ -77,12 +77,12 @@ public class UIManager : MonoBehaviour
                     {
                         // make sure we can move right
                         currentPosX += 1;
-                        currObjSelected.SetActive(false);
+                        //currObjSelected.SetActive(false);
                         currentSelected += 1;
                         EventSystem.current.SetSelectedGameObject(levelMenu2.transform.GetChild(currentSelected).gameObject);
                         currObjSelected = EventSystem.current.currentSelectedGameObject.gameObject;
                         selectButton = currObjSelected.transform.GetChild(0).gameObject;
-                        selectButton.SetActive(true);
+                        //selectButton.SetActive(true);
                     }
                 }
             }
@@ -93,12 +93,12 @@ public class UIManager : MonoBehaviour
                     if (currentPosY == 1)   // make sure we can move up
                     {
                         currentPosY = 0;
-                        currObjSelected.SetActive(false);
+                        //currObjSelected.SetActive(false);
                         currentSelected += linewidth;
                         EventSystem.current.SetSelectedGameObject(levelMenu2.transform.GetChild(currentSelected).gameObject);
                         currObjSelected = EventSystem.current.currentSelectedGameObject.gameObject;
                         selectButton = currObjSelected.transform.GetChild(1).gameObject;
-                        selectButton.SetActive(true);
+                        //selectButton.SetActive(true);
 
                     }
                 }
@@ -107,12 +107,12 @@ public class UIManager : MonoBehaviour
                     if (currentPosY == 0) // make sure we can move down
                     {
                         currentPosY = 1;
-                        currObjSelected.SetActive(false);
+                        //currObjSelected.SetActive(false);
                         currentSelected += linewidth;
                         EventSystem.current.SetSelectedGameObject(levelMenu2.transform.GetChild(currentSelected).gameObject);
                         currObjSelected = EventSystem.current.currentSelectedGameObject.gameObject;
                         selectButton = currObjSelected.transform.GetChild(1).gameObject;
-                        selectButton.SetActive(true);
+                        //selectButton.SetActive(true);
                     }
                 }
             }
