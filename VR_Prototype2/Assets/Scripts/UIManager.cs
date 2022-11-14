@@ -28,7 +28,7 @@ public class UIManager : MonoBehaviour
         
     }
 
-    public void ButtonPress(Vector2 value, string h)
+    public void ButtonKeypadPress(Vector2 value, string h)
     {
 
         Debug.Log("press value:" + value);

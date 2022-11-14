@@ -85,7 +85,7 @@ public class ButtonCallBack : MonoBehaviour
             {
                 hand = "left";
                 //Debug.Log("called " + ctx.action);            
-                ui.ButtonPress(lastTouchedLeft, hand);
+                ui.ButtonKeypadPress(lastTouchedLeft, hand);
 
             }
             // if right controller, rotate to the right
@@ -93,7 +93,7 @@ public class ButtonCallBack : MonoBehaviour
             {
                 hand = "right";
                 //Debug.Log("called " + ctx.action);
-                ui.ButtonPress(lastTouchedRight, hand);
+                ui.ButtonKeypadPress(lastTouchedRight, hand);
             }
         
     }
