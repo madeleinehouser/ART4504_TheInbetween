@@ -6,30 +6,40 @@ using UnityEngine.EventSystems;
 
 public class Main : MonoBehaviour
 {
-    enum Level { LEVELONE, LEVELTWO, LEVELTHREE };
-    enum GameStatus { RUNNING, WON, LOST };
+    enum Level { LEVELZERO, LEVELONE, LEVELTWO, LEVELTHREE };
+    enum GameStatus { LOAD, RUNNING, WON, LOST };
 
-    public GameObject player;
-    public GameObject transitionCube;
-    public GameObject leftHand;
-    public GameObject rightHand;
-    public GameObject lose;
-    public GameObject win;
-    Level currLevel;
-    GameStatus status;
-    string hand;
+    public GameObject player;               // internal player object
+    public GameObject leftHand;             // left controller
+    public GameObject rightHand;            // right controller
+    public GameObject lose;                 // assets in transition room when player loses game
+    public GameObject win;                  // assets in transition room when player wins game
+    public GameObject nextLevel;            // assets in transition room when player is going to next level
+    public GameObject restartLevel;         // assets in transition room when player is restarting level
+    Level currLevel;                        // the current level being played
+    GameStatus status;                      // status of the game, if it's running, won, or lost
+    string hand;                            
     bool internalActive;                    // controller for the internal player (left controller)
     bool externalActive;                    // controller for the external player (right controller)
     bool hasLoaded;                         // make sure the whole scene has loaded
     bool hasWon;                            // check if the internal player has won or lost
-    Vector3 transportPlayer;
+    Vector3 transportPlayer;                // Vector that holds position that player should transport to
     GameObject uiObj;
     UIManager ui;
+    bool isReady;                           // flag that makes sure player is ready to go to next level
+    bool inTransition;                      // if player is in transition room 
+    public GameObject instrObj1;            
+    public GameObject instrObj2;
+    public GameObject instrObj3;
+    AudioSource level1Instr;          // audio for instructions on how to play level 1
+    AudioSource level2Instr;          // audio for instructions on how to play level 2
+    AudioSource level3Instr;          // audio for instructions on how to play level 3
+    public GameObject repeat;         // GameObject to interact with if player wants to hear instructions again
+    public GameObject playerReady;    // GameObject to interact with if player is ready to play next level
+    bool selectedButton;              // make sure player has selected an option before trying to spawn object
 
     // timer for each level
     float startTime;                        //level start time - resets every time a new level loads
-    float transitionTime;                   //transition start time - resets every time the game ends (duration ends)
-    float loadingDuration;                  //duration of transitions (GameWon or GameLost states)
     
     // level 1 vars
     public float rotationSpeed;             // speed to rotate the room for level 1
@@ -38,14 +48,15 @@ public class Main : MonoBehaviour
     GameObject targetDoor;                  // gameobject refers to original position of door in level 1
     public float thresholdDistance;         // distance door has to be from target position to be considered "winning"
     float doorVisibleTime;                  // total time door is visible when level 1 starts before disappearing
-    public GameObject internalPlayerTime;   // pop up showing internal player time to play
-    public GameObject externalPlayerTime;   // pop up showing external player time to play
+    public GameObject internalPlayerPopUp;   // pop up showing internal player time to play
+    public GameObject externalPlayerPopUp;   // pop up showing external player time to play
     public GameObject levelEndedObject;     // pop up showing level has ended
     float popUpStart;                       // time pop up starts
     float popUpDuration;                    // total time pop up should be visible
     GameObject[] keys;                      // array that holds the keys to find in level 1
     int totalKeys;                          // total keys to be found in level 1
     bool keyEnabled;                        // boolean to tell if a key is active in level 1
+    public GameObject currentEnabledKey;    // the current key that is active for level 1
     int keysHeld;                           // number of keys held (number of lives player has)
     bool findKeys;                          // bool that checks if the hidden keys in level 1 have been identified by Unity
     bool levelEnded;                         // check if the level has ended
@@ -64,6 +75,7 @@ public class Main : MonoBehaviour
     private float levelTwoTotalDuration;    // duration of running state for level 2
     public float levelTwoPlayerDuration;    // duration of internal player for level 2
     public float levelTwoDemonDuration;     // duration of external player for level 2
+    public List<GameObject> objectsPlaced;      // holds the objects placed by the external player  
 
     // level 3 vars
     public GameObject audioObject;          // audio object that gets instantiated
@@ -79,52 +91,61 @@ public class Main : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        player.transform.position = new Vector3(-11.87f, 2.71f, 19.01f);    // comment back in
         leftHand = GameObject.Find("LeftHand");
         rightHand = GameObject.Find("RightHand");
-        transitionCube.SetActive(false);
-        internalActive = true;      // change to false later
-        externalActive = true;      // change to false later
+        internalActive = false;              
+        externalActive = false;              
         hasWon = true;
         hasLoaded = false;
-        transportPlayer = new Vector3(-9.81000f, 2.94899f, 4.5982666f);
+        transportPlayer = new Vector3(-11.87f, 2.71f, 19.01f);
         uiObj = GameObject.Find("ScreenUI");
         ui = uiObj.GetComponentInChildren<UIManager>();
+        isReady = false;
+        inTransition = true;                // change to true
+        currentEnabledKey = null;
+        win.SetActive(false);
+        lose.SetActive(false);
+        restartLevel.SetActive(false);
+        nextLevel.SetActive(true);
+        level1Instr = instrObj1.GetComponent<AudioSource>();
+        level2Instr = instrObj2.GetComponent<AudioSource>();
+        level3Instr = instrObj3.GetComponent<AudioSource>();
+        selectedButton = false;
 
-        SceneManager.LoadScene("AudioRoom_Player1", LoadSceneMode.Additive);
+        SceneManager.LoadScene("SpinningRoom", LoadSceneMode.Additive);      // change to SpinningRoom
         levelOneTotalDuration = levelOnePlayerDuration + levelOneDemonDuration;
-        popUpDuration = 3f;
-        loadingDuration = 20f;
+        popUpDuration = 5f;
         doorVisibleTime = 10f;
+        startTime = 0;
+        currLevel = Level.LEVELZERO;            // change to ZERO
+        status = GameStatus.LOAD;            // change to LOAD
 
-        //set everything to start level one
-        startTime = Time.time;
-        currLevel = Level.LEVELTHREE;
-        status = GameStatus.RUNNING;
+        // ----- set level 1 vars
         keyEnabled = false;
         keysHeld = 0;
         totalKeys = 0;
         findKeys = false;
+        controllerThreshold = 0.1f;
  
-        rotationSpeed = 5f;      // set level 1 vars
-        thresholdDistance = 1f;
-        internalPlayerTime.SetActive(false);
-        externalPlayerTime.SetActive(true);
+        rotationSpeed = 5f;
+        thresholdDistance = .5f;
+        internalPlayerPopUp.SetActive(false);
+        externalPlayerPopUp.SetActive(false);
         levelEndedObject.SetActive(false);
-        //--------------------
-
         keys = new GameObject[5];
 
-        // set level 2 vars
+        // ----- set level 2 vars
         numKeys = 0;
         pressed = false;
         levelEnded = false;
         levelTwoTotalDuration = levelTwoPlayerDuration + levelTwoDemonDuration;
 
-        // set level 3 vars
+        // ----- set level 3 vars
         musicActive = false;
-        followSpeed = 0.2f;
+        followSpeed = 0.15f;
         musicCollected = 0;
-        soundDist = 0.2f;
+        soundDist = 0.5f;
     }
 
 
@@ -133,6 +154,7 @@ public class Main : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        Debug.Log(currLevel);
         int level = getLevel();
         ui.SetLevelMenu(level);
         if (!hasLoaded)
@@ -143,7 +165,18 @@ public class Main : MonoBehaviour
 
         switch (currLevel)
         {
-            case Level.LEVELONE:
+            case Level.LEVELZERO:
+                if (isReady)
+                {                
+                    status = GameStatus.RUNNING;
+                    currLevel = Level.LEVELONE;
+                    startTime = Time.time;
+                    externalPlayerPopUp.SetActive(true);
+                    player.transform.position = Vector3.zero;
+                    isReady = false;
+                }
+                break;
+            case Level.LEVELONE:                
                 switch (status)
                 {
                     case GameStatus.RUNNING:                        
@@ -151,30 +184,37 @@ public class Main : MonoBehaviour
                         break;
                     case GameStatus.WON:
                         // load next level scene
-                        if ((Time.time - transitionTime) > loadingDuration)     // going to next level
+                        if (isReady)     // going to next level
                         {
+                            inTransition = false;
+                            isReady = false;
                             player.transform.position = Vector3.zero;
                             currLevel = Level.LEVELTWO;
                             status = GameStatus.RUNNING;
                             startTime = Time.time;
-                            internalActive = true;
-                            externalActive = true;
+                            //internalActive = false;
+                            //externalActive = true;
                             levelEnded = false;
                             levelEndedObject.SetActive(false);
                         }
                         break;
-                    case GameStatus.LOST:
+                    case GameStatus.LOST:                        
                         // transitioning back to next level
-                        if ((Time.time - transitionTime) > loadingDuration)
+                        if (isReady)
                         {
-                            // lose a life
+                            inTransition = false;
+                            isReady = false;
                             player.transform.position = Vector3.zero;
-
                             status = GameStatus.RUNNING;
                             startTime = Time.time;
-                            internalActive = true;
-                            externalActive = true;
+                            //internalActive = true;
+                            //externalActive = true;
                             levelEnded = false;
+                            findKeys = false;
+                            for (int i = 0; i < keys.Length; i++)
+                            {
+                                keys[i] = null;
+                            }
                             levelEndedObject.SetActive(false);
                         }
                         break;
@@ -188,34 +228,40 @@ public class Main : MonoBehaviour
                     case GameStatus.RUNNING:
                         updateLevelTwo();
                         break;
-                    case GameStatus.WON:                        
-                        if ((Time.time - transitionTime) > loadingDuration)     // going to next level
+                    case GameStatus.WON:
+                        if (isReady)     // players transitioning to next level
                         {
+                            inTransition = false;
+                            isReady = false;
                             player.transform.position = Vector3.zero;
-
                             startTime = Time.time;
                             currLevel = Level.LEVELTHREE;
                             status = GameStatus.RUNNING;
-                            internalActive = true;
-                            externalActive = true;
+                            //internalActive = true;
+                            //externalActive = true;
                             levelEnded = false;
                             levelEndedObject.SetActive(false);
-
+                            selectedButton = false;
                         }
-
                         break;
                     case GameStatus.LOST:
-                        // transitioning back to next level
-                        if ((Time.time - transitionTime) > loadingDuration)     // going to same level
+                        if (isReady)     // players restarting level
                         {
+                            inTransition = false;
+                            isReady = false;
                             player.transform.position = Vector3.zero;
-
+                            // destroy all the objects that were spawned by external player
+                            for (int i = 0; i < objectsPlaced.Count; i++)
+                            {
+                                Destroy(objectsPlaced[i]);
+                            }
                             status = GameStatus.RUNNING;
                             startTime = Time.time;
-                            internalActive = true;
-                            externalActive = true;
+                            //internalActive = true;
+                            //externalActive = true;
                             levelEnded = false;
                             levelEndedObject.SetActive(false);
+                            selectedButton = false;
                         }
                         break;
                     default:
@@ -228,33 +274,46 @@ public class Main : MonoBehaviour
                     case GameStatus.RUNNING:
                         updateLevelThree();
                         break;
-                    case GameStatus.WON:
-                        if ((Time.time - transitionTime) > loadingDuration)
+                    case GameStatus.WON:                       
+                        if (isReady)
                         {
+                            inTransition = false;
+                            isReady = false;
                             player.transform.position = Vector3.zero;
-
+                            if (musicActive)
+                            {
+                                Destroy(audioObject);
+                                musicActive = false;
+                            }
                             startTime = Time.time;
                             currLevel = Level.LEVELTHREE;
                             status = GameStatus.RUNNING;
                             startTime = Time.time;
-                            internalActive = true;
-                            externalActive = true;
+                            //internalActive = true;
+                            //externalActive = true;
                             levelEnded = false;
                             levelEndedObject.SetActive(false);
                         }
                         break;
                     case GameStatus.LOST:
                         // transitioning back to next level
-                        if ((Time.time - transitionTime) > loadingDuration)
+                        if (isReady)
                         {
+                            inTransition = false;
+                            isReady = false;
                             player.transform.position = Vector3.zero;
-
+                            if (musicActive)
+                            {
+                                Destroy(audioObject);
+                                musicActive = false;
+                            }
                             status = GameStatus.RUNNING;
                             startTime = Time.time;
-                            internalActive = true;
-                            externalActive = true;
+                            //internalActive = true;
+                            //externalActive = true;
                             levelEnded = false;
                             levelEndedObject.SetActive(false);
+                            selectedButton = false;
                         }
                         break;
                     default:
@@ -266,159 +325,316 @@ public class Main : MonoBehaviour
         }
     }
 
-
+    /**
+     * Method that detects any collisions the player makes using their controller
+     */
     public void handCollided(string h, GameObject obj)
     {
+        if (currLevel == Level.LEVELZERO)
+        {
+            Debug.Log(level1Instr.clip);
+            // repeat the instructions for level one
+            if (inTransition && obj.tag == "Repeat")
+            {
+                Debug.Log("repeating instructions for level 1");
+                AudioClip audio1 = level1Instr.clip;
+                if (audio1 != null && !level1Instr.isPlaying)
+                {
+                    level1Instr.PlayOneShot(audio1);
+                }
+            }
+            if (inTransition && obj.tag == "Ready")
+            {
+                isReady = true;
+            }
+        }
         if (currLevel == Level.LEVELONE)
         {
-            if (h == "LeftHand" && obj.gameObject.tag == "Key")
+            // check if internal player touched key
+            if (h == "LeftHand" && obj.gameObject.tag == "Key" && !internalActive)
             {
                 Debug.Log("TOUCHED KEY");
                 Destroy(obj);
                 keysHeld++;
                 keyEnabled = false;
             }
-        }
-        if (internalActive)
-        {
-            if (currLevel == Level.LEVELTWO)
-            { 
-                    Debug.Log(h);
-                    if (h == "LeftHand" && obj.gameObject.tag == "Key")
-                    {
-                        Debug.Log("TOUCHED KEY");
-                        Destroy(obj);
-                        numKeys++; 
-                    }              
-            }
-        }
-        else if (levelEnded)
-        {
-            switch (currLevel)
-            {
-                case Level.LEVELONE:
-                    if (h == "LeftHand" && obj.gameObject.tag == "Door")
-                    {
-                        if (hasWon)
-                        {
-                            status = GameStatus.WON;
-                            transitionTime = Time.time;
-                            LoadNextLevel("SpinningRoom", "Clutter Room");
-                            // test transport of player
-                            player.transform.position = transportPlayer;
 
+            // repeat the instructions for level one
+            else if (inTransition && obj.tag == "Repeat")
+            {
+                // repeat instructions for level 2 
+                if (hasWon)
+                {
+                    Debug.Log("repeating instructions for level 2");
+                    AudioClip audio2 = level2Instr.clip;
+                    if (audio2 != null && !level2Instr.isPlaying)
+                    {
+                        level2Instr.PlayOneShot(audio2);
+                    }
+                }
+                // repeat instructions for level 1
+                else
+                {
+                    Debug.Log("repeating instructions for level 1");
+                    AudioClip audio1 = level1Instr.clip;
+                    if (audio1 != null && !level1Instr.isPlaying)
+                    {
+                        level1Instr.PlayOneShot(audio1);
+                    }
+                }
+            }
+            // check if player is ready to go to the next level 
+            else if (inTransition && obj.tag == "Ready")
+            {
+                isReady = true;
+            }
+            else if (levelEnded)
+            {
+                // check if player collided with door, move to transition room
+                if (h == "LeftHand" && obj.gameObject.tag == "Door")
+                {
+                    Debug.Log("collided with door!");
+                    if (hasWon)
+                    {
+                        status = GameStatus.WON;
+                        LoadNextLevel("SpinningRoom", "ClutterRoom");
+                        player.transform.position = transportPlayer;
+                        win.SetActive(false);
+                        lose.SetActive(false);
+                        restartLevel.SetActive(false);
+                        nextLevel.SetActive(true);
+                        AudioClip audio2 = level2Instr.clip;
+                        if (audio2 != null && !level2Instr.isPlaying)
+                        {
+                            level2Instr.PlayOneShot(audio2);
+                        }
+                        inTransition = true;
+                        Debug.Log("player has won level! Loading next level");
+                        internalActive = false;
+                        externalActive = false;
+                        levelEndedObject.SetActive(false);
+                    }
+                    else
+                    {
+                        status = GameStatus.LOST;
+                        keysHeld--;
+                        inTransition = true;
+                        player.transform.position = transportPlayer;
+                        // check how many lives player has left, if <= 0, transport to "lose" room
+                        if (keysHeld <= 0)
+                        {
+                            // turn off "transition" room and turn on "lose" room
+                            win.SetActive(false);
+                            lose.SetActive(true);
+                            restartLevel.SetActive(false);
+                            nextLevel.SetActive(false);
+                            Debug.Log("player has lost game!");
+                        }
+                        else
+                        {
+                            // player restarts level
+                            win.SetActive(false);
+                            lose.SetActive(false);
+                            restartLevel.SetActive(true);
+                            nextLevel.SetActive(false);
+                            AudioClip audio1 = level1Instr.clip;
+                            if (audio1 != null && !level1Instr.isPlaying)
+                            {
+                                level1Instr.PlayOneShot(audio1);
+                            }
+                            Debug.Log("player has lost level! Reloading level");
+                            ReloadLevel("SpinningRoom");
                             internalActive = false;
                             externalActive = false;
                             levelEndedObject.SetActive(false);
                         }
+
+                    }
+                }
+            }
+            
+        }
+        else if (currLevel == Level.LEVELTWO)
+        {
+            if (internalActive)
+            {
+                if (h == "LeftHand" && obj.gameObject.tag == "Key")
+                {
+                    Debug.Log("TOUCHED KEY");
+                    Destroy(obj);
+                    numKeys++;
+                }
+            }
+            else if (inTransition && obj.tag == "Repeat")
+            {
+                // repeat instructions for level 3 
+                if (hasWon)
+                {
+                    Debug.Log("repeating instructions for level 3");
+                    AudioClip audio3 = level3Instr.clip;
+                    if (audio3 != null && !level3Instr.isPlaying)
+                    {
+                        level3Instr.PlayOneShot(audio3);
+                    }
+                }
+                // repeat instructions for level 2
+                else
+                {
+                    Debug.Log("repeating instructions for level 2");
+                    AudioClip audio2 = level2Instr.clip;
+                    if (audio2 != null && !level2Instr.isPlaying)
+                    {
+                        level2Instr.PlayOneShot(audio2);
+                    }
+                }
+            }
+            // check if player is ready to go to the next level 
+            else if (inTransition && obj.tag == "Ready")
+            {
+                isReady = true;
+            }
+            else if (levelEnded)
+            {
+                // check if player collided with door, move to transition room
+                if (h == "LeftHand" && obj.gameObject.tag == "Door")
+                {
+                    if (hasWon)
+                    {
+                        status = GameStatus.WON;
+                        player.transform.position = transportPlayer;
+                        win.SetActive(false);
+                        lose.SetActive(false);
+                        restartLevel.SetActive(false);
+                        nextLevel.SetActive(true);
+                        inTransition = true;
+                        AudioClip audio3 = level3Instr.clip;
+                        if (audio3 != null && !level3Instr.isPlaying)
+                        {
+                            level1Instr.PlayOneShot(audio3);
+                        }
+                        Debug.Log("player has won level! Loading next level");
+                        internalActive = false;
+                        externalActive = false;
+                        levelEnded = false;
+                        levelEndedObject.SetActive(false);
+                        LoadNextLevel("ClutterRoom", "AudioRoom");
+                    }
+                    else
+                    {
+                        status = GameStatus.LOST;
+                        keysHeld--;
+                        inTransition = true;
+                        player.transform.position = transportPlayer;
+                        // check how many lives player has left, if 0, transport to "lose" room
+                        if (keysHeld <= 0)
+                        {
+                            // turn off "transition" room and turn on "lose" room
+                            Debug.Log("player has lost game!");
+                            win.SetActive(false);
+                            lose.SetActive(true);
+                            restartLevel.SetActive(false);
+                            nextLevel.SetActive(false);
+                        }
                         else
                         {
-                            status = GameStatus.LOST;
-                            keysHeld--;
-                            // check how many lives player has left, if 0, transport to "lose" room
-                            if (keysHeld == 0)
+                            // turn on "transition" room
+                            win.SetActive(false);
+                            lose.SetActive(false);
+                            restartLevel.SetActive(true);
+                            nextLevel.SetActive(false);
+                            AudioClip audio2 = level2Instr.clip;
+                            if (audio2 != null && !level2Instr.isPlaying)
                             {
-                                // turn off "transition" room and turn on "lose" room
-                                player.transform.position = transportPlayer;
+                                level2Instr.PlayOneShot(audio2);
                             }
-                            else
-                            {
-                                // turn on "transition" room
-                                player.transform.position = transportPlayer;
-                                transitionTime = Time.time;
-                                ReloadLevel("SpinningRoom");
-                                internalActive = false;
-                                externalActive = false;
-                                levelEndedObject.SetActive(false);
-                            }
-                            
-                        }
-                    }
-                    break;
-                case Level.LEVELTWO:
-                    Debug.Log("go into door");
-                    // if interact with door
-                    if (h == "LeftHand" && obj.gameObject.tag == "Door")
-                    {
-                        Debug.Log("hand collided with door");
-                        if (hasWon)
-                        {
-                            status = GameStatus.WON;
-                            transitionTime = Time.time;
-                            // test transport of player
-                            player.transform.position = transportPlayer; //teleport to win room
+                            Debug.Log("player has lost level! Reloading level");
                             internalActive = false;
                             externalActive = false;
+                            numKeys = 0;
                             levelEnded = false;
                             levelEndedObject.SetActive(false);
-                            LoadNextLevel("Clutter Room", "AudioRoom_Player1");
+                            ReloadLevel("ClutterRoom");
+                        }
+
+                    }
+                }
+            }
+        }
+        else if (currLevel == Level.LEVELTHREE)
+        {
+            if (inTransition && obj.tag == "Repeat")
+            {
+                // repeat the instructions for level 3
+                if (!hasWon)
+                {
+                    AudioClip audio3 = level3Instr.clip;
+                    if (audio3 != null && !level3Instr.isPlaying)
+                    {
+                        level3Instr.PlayOneShot(audio3);
+                    }
+                }
+            }
+            // check if player is ready to go to the next level 
+            else if (inTransition && obj.tag == "Ready")
+            {
+                isReady = true;
+            }
+            else if (levelEnded)
+            {
+                // check if player collided with door, move to transition room
+                if (h == "LeftHand" && obj.gameObject.tag == "Door")
+                {
+                    if (hasWon)
+                    {
+                        status = GameStatus.WON;
+                        // turn off "transition" room and turn on "win" room
+                        win.SetActive(true);
+                        lose.SetActive(false);
+                        restartLevel.SetActive(false);
+                        nextLevel.SetActive(false);
+                        player.transform.position = transportPlayer;
+                        inTransition = true;
+                        internalActive = false;
+                        externalActive = false;
+                        levelEndedObject.SetActive(false);
+                    }
+                    else
+                    {
+                        status = GameStatus.LOST;
+                        keysHeld--;
+                        inTransition = true;
+                        player.transform.position = transportPlayer;
+                        // check how many lives player has left, if 0, transport to "lose" room
+                        if (keysHeld <= 0)
+                        {
+                            // turn off "transition" room and turn on "lose" room
+                            win.SetActive(false);
+                            lose.SetActive(true);
+                            restartLevel.SetActive(false);
+                            nextLevel.SetActive(false);
+                            Debug.Log("player has lost game!");
                         }
                         else
                         {
-                            status = GameStatus.LOST;
-                            keysHeld--;
-                            // check how many lives player has left, if 0, transport to "lose" room
-                            if (keysHeld == 0)
+                            // turn on transition room
+                            win.SetActive(false);
+                            lose.SetActive(false);
+                            restartLevel.SetActive(true);
+                            nextLevel.SetActive(false);
+                            AudioClip audio3 = level3Instr.clip;
+                            if (audio3 != null && !level3Instr.isPlaying)
                             {
-                                // turn off "transition" room and turn on "lose" room
-                                player.transform.position = transportPlayer;
+                                level3Instr.PlayOneShot(audio3);
                             }
-                            else
-                            {
-                                // turn on "transition" room
-                                player.transform.position = transportPlayer;
-                                internalActive = false;
-                                externalActive = false;
-                                numKeys = 0;
-                                levelEnded = false;
-                                levelEndedObject.SetActive(false);
-                                ReloadLevel("Clutter Room");
-                                transitionTime = Time.time;
-                            }
-                            
-                        }
-                    }
-                    break;
-                case Level.LEVELTHREE:
-                    if (h == "LeftHand" && obj.gameObject.tag == "Door")
-                    {
-                        if (hasWon)
-                        {
-                            status = GameStatus.WON;
-                            transitionTime = Time.time;
-                            // turn off "transition" room and turn on "win" room
-                            player.transform.position = transportPlayer;
+                            Debug.Log("player has lost level! Reloading level");
                             internalActive = false;
                             externalActive = false;
                             levelEndedObject.SetActive(false);
-                        }
-                        else
-                        {
-                            status = GameStatus.LOST;
-                            keysHeld--;
-                            // check how many lives player has left, if 0, transport to "lose" room
-                            if (keysHeld == 0)
-                            {
-                                // turn off "transition" room and turn on "lose" room
-                                player.transform.position = transportPlayer;
-                            }
-                            else
-                            {
-                                // turn on transition room
-                                player.transform.position = transportPlayer;
-                                internalActive = false;
-                                externalActive = false;
-                                transitionTime = Time.time;
-                                levelEndedObject.SetActive(false);
-                                ReloadLevel("AudioRoom_Player1");
-                            }
+                            ReloadLevel("AudioRoom");
                         }
                     }
-                    break;
-                default:
-                    break;
+                }
             }
-
         }
     }
 
@@ -430,6 +646,7 @@ public class Main : MonoBehaviour
     {
         if (status == GameStatus.RUNNING)
         {
+            Debug.Log(startTime);
             // make sure object references are set
             if (room == null)
                 room = GameObject.Find("Room");
@@ -439,8 +656,8 @@ public class Main : MonoBehaviour
                 targetDoor = GameObject.Find("Target Position");
             }
 
-            // hide the door after 5 seconds
-            if (Time.time > doorVisibleTime)
+            // hide the door after specified time
+            if ((Time.time - startTime) > doorVisibleTime)
             {
                 visibleDoor.SetActive(false);
             }
@@ -450,10 +667,9 @@ public class Main : MonoBehaviour
             {
                 keys = GameObject.FindGameObjectsWithTag("Key");
                 totalKeys = keys.Length;
-                Debug.Log("found total keys " + totalKeys);
+                Debug.Log("total keys in scene is: " + totalKeys);
                 for (int i = 0; i < totalKeys; i++)
                 {
-                    //Debug.Log("disabled key " + i);
                     keys[i].SetActive(false);
                 }
                 findKeys = true;
@@ -463,22 +679,26 @@ public class Main : MonoBehaviour
             if (!keyEnabled && keysHeld != 5)
             {
                 Debug.Log("enabling key");
-                int randomKey = Random.Range(1, totalKeys);
-                while (keys[randomKey] == null)
+                int randomKey = Random.Range(0, totalKeys);
+                if (keys[randomKey] != null)
+                {
+                    currentEnabledKey = keys[randomKey];
+                    Debug.Log("enabled key is: " + randomKey);
+                    Debug.Log(currentEnabledKey.name);
+                    currentEnabledKey.SetActive(true);
+                    keyEnabled = true;
+                }   
+                else
                 {
                     randomKey = Random.Range(1, totalKeys);
-                }   
-                Debug.Log(randomKey);
-                GameObject key = keys[randomKey];
-                key.SetActive(true);
-                keyEnabled = true;
+                }
             }
 
             // demon controls (external player)
             if ((Time.time - startTime) < levelOnePlayerDuration)
             {
                 // make sure only external player can play
-                if (internalActive == true)
+                if (externalActive == false)
                 {
                     popUpStart = Time.time;
                     Debug.Log("external player time");
@@ -489,7 +709,7 @@ public class Main : MonoBehaviour
                 // popup expires
                 if ((Time.time - popUpStart) >= popUpDuration)
                 {
-                    externalPlayerTime.SetActive(false);
+                    externalPlayerPopUp.SetActive(false);
                 }
 
             }
@@ -502,8 +722,8 @@ public class Main : MonoBehaviour
                     Debug.Log("internal player time");
                     internalActive = true;
                     externalActive = false;
-                    internalPlayerTime.SetActive(true);
-                    externalPlayerTime.SetActive(false);
+                    internalPlayerPopUp.SetActive(true);
+                    externalPlayerPopUp.SetActive(false);
 
                     popUpStart = Time.time;
                 }
@@ -511,7 +731,7 @@ public class Main : MonoBehaviour
                 // pop up expires
                 if ((Time.time - popUpStart) >= popUpDuration)
                 {
-                    internalPlayerTime.SetActive(false);
+                    internalPlayerPopUp.SetActive(false);
                 }
 
             }
@@ -526,15 +746,17 @@ public class Main : MonoBehaviour
                 internalActive = false;
                 externalActive = false;
                 float totalDoorDistance = Vector3.Distance(visibleDoor.transform.position, targetDoor.transform.position);
-                if (totalDoorDistance <= thresholdDistance)  ///check if the two doors are less than x meters apart
+                if (totalDoorDistance <= thresholdDistance)  //check if the two doors are less than x meters apart
                 {
-                    Debug.Log("player has won!");
+                    Debug.Log("player has beat level one!");
                     hasWon = true;
+                    inTransition = true;
                 }
                 else
                 {
                     Debug.Log("player has lost!");
                     hasWon = false;
+                    inTransition = true;
                 }
             }
         }
@@ -547,7 +769,7 @@ public class Main : MonoBehaviour
             // demon controls (external player)
             if ((Time.time - startTime) < levelTwoPlayerDuration)
             {
-                if (internalActive == true)
+                if (externalActive == false)
                 {
                     popUpStart = Time.time;
                     Debug.Log("external player time");
@@ -558,7 +780,7 @@ public class Main : MonoBehaviour
                 // popup expires
                 if ((Time.time - popUpStart) >= popUpDuration)
                 {
-                    externalPlayerTime.SetActive(false);
+                    externalPlayerPopUp.SetActive(false);
                 }
 
             }
@@ -572,8 +794,8 @@ public class Main : MonoBehaviour
                     internalActive = true;
                     externalActive = false;
 
-                    internalPlayerTime.SetActive(true);
-                    externalPlayerTime.SetActive(false);
+                    internalPlayerPopUp.SetActive(true);
+                    externalPlayerPopUp.SetActive(false);
 
                     popUpStart = Time.time;
                 }
@@ -581,7 +803,7 @@ public class Main : MonoBehaviour
                 // pop up expires
                 if ((Time.time - popUpStart) >= popUpDuration)
                 {
-                    internalPlayerTime.SetActive(false);
+                    internalPlayerPopUp.SetActive(false);
                 }
             }
             // if time exceeds total playing time of the level
@@ -595,13 +817,15 @@ public class Main : MonoBehaviour
                 //check if all keys have been collected
                 if (numKeys >= 3)
                 {
-                    Debug.Log("player has won!");
+                    Debug.Log("player has beat level!");
                     hasWon = true;
+                    inTransition = true;
                 }
                 else
                 {
-                    Debug.Log("player has lost!");
+                    Debug.Log("player has lost level!");
                     hasWon = false;
+                    inTransition = true;
                 }
             }
         }
@@ -612,6 +836,11 @@ public class Main : MonoBehaviour
     {
         if (status == GameStatus.RUNNING)
         {
+            if (!internalActive && !externalActive)
+            {
+                internalActive = true;
+                externalActive = true;
+            }
             // game playing
             if ((Time.time - startTime) < levelThreeTotalDuration)
             {
@@ -640,13 +869,15 @@ public class Main : MonoBehaviour
 
                 if (musicCollected >= 3) 
                 {
-                    Debug.Log("player has won!");
+                    Debug.Log("player has beat level three!");
                     hasWon = true;
+                    inTransition = true;
                 }
                 else
                 {
-                    Debug.Log("player has lost!");
+                    Debug.Log("player has lost level three!");
                     hasWon = false;
+                    inTransition = true;
                 }
             }
         }
@@ -664,23 +895,48 @@ public class Main : MonoBehaviour
         switch (currLevel)
         {
             case Level.LEVELONE:
-                if (value > 0.2f)
-                {
-                    if (hand == "left" && internalActive)
-                    {
-                        room.transform.Rotate(new Vector3(0, value * rotationSpeed, 0) * Time.deltaTime);
-                        Debug.Log("rotating left");
-                    }
-                    else if (hand == "right" && externalActive)
-                    {
-                        room.transform.Rotate(new Vector3(0, -(value * rotationSpeed), 0) * Time.deltaTime);
-                        Debug.Log("rotating right");
-                    }
-                }
+                //if (value > 0.1f)
+                //{
+                    // internal player trying to pick up key 
+                    //if (hand == "left")
+                    //{
+                    //    // check if internal player clicked on audioObject
+                    //    if (keyEnabled)
+                    //    {
+                    //        float distFromObj = Vector3.Distance(leftHand.transform.position, currentEnabledKey.transform.position);
+                    //        if (distFromObj <= controllerThreshold)
+                    //        {
+                    //            Debug.Log("TOUCHED KEY");
+                    //            keysHeld++;
+                    //            if (currentEnabledKey != null)
+                    //            {
+                    //                Destroy(currentEnabledKey);
+                    //            }
+                    //            keyEnabled = false; 
+                    //        }
+                    //    }
+                    //}
+                //}
                 break;
             case Level.LEVELTWO:
-                if (hand == "right")
+                selectedButton = ui.buttonWasSelected();
+                if (value > 0.1f)
                 {
+                    // internal player trying to pick up object 
+                    //if (hand == "left" && internalActive)
+                    //{
+                    //    float distFromSound = Vector3.Distance(leftHand.transform.position, audioObject.transform.position);
+                    //    if (distFromSound <= soundDist)
+                    //    {
+                    //        musicCollected += 1;
+                    //        Destroy(audioObject);
+                    //        musicActive = false;
+                    //    }
+                    //}                   
+                }
+                if (hand == "right" && selectedButton)
+                {
+                    Debug.Log(selectedButton);
                     if ((value > 0.7f) && !pressed)
                     {
                         OnPressed();
@@ -696,18 +952,15 @@ public class Main : MonoBehaviour
                 
                 break;
             case Level.LEVELTHREE:
-                Debug.Log("l31");
+                selectedButton = ui.buttonWasSelected();
                 if (value > 0.1f)
                 {
-                    Debug.Log("l32");
                     // spawn new sound if no active music is playing
                     if (hand == "right" && !musicActive && externalActive)
                     {
-                        Debug.Log("l33");
                         Debug.Log("trying to spawn new sound");
                         // spawn in new sound
                         OnPressed();
-                        musicActive = true;
                     }
 
                     // internal player trying to select where they think sound is 
@@ -732,13 +985,16 @@ public class Main : MonoBehaviour
         }
     }
 
-    public void ButtonKeypadTouch(float value, string h)
+    public void ButtonKeypadPress(float value, string h)
     {
 
         switch (currLevel)
         {
+            case Level.LEVELZERO:
+                ui.SetLevelMenu(0);
+                break;
             case Level.LEVELONE:
-                
+                ui.SetLevelMenu(1);
                 break;
             case Level.LEVELTWO:
                 ui.SetLevelMenu(2);
@@ -746,7 +1002,7 @@ public class Main : MonoBehaviour
             case Level.LEVELTHREE:
                 ui.SetLevelMenu(3);
                 break;
-            default:
+            default:               
                 break;
         }
     }
@@ -791,35 +1047,38 @@ public class Main : MonoBehaviour
 
     public void OnPressed()
     {
-        Debug.Log("instantiating sound");
+        Debug.Log("external player pressed trigger");
 
-       
         // should only be called by external player 2 (right hand)
         if (externalActive)
         {
             if (currLevel == Level.LEVELTWO)
             {
                 // instantiate a new object where the right controller is
-                GameObject clone = ui.getCurrentSelectedButton();
+                GameObject clone = ui.getCurrentSelectedObject();
                 if (clone != null)
                 {
+                    Debug.Log("instantiating object: " + clone.name);
                     recentCube = Instantiate(clone, rightHand.transform.position, rightHand.transform.rotation);
+                    recentCube.SetActive(true);
                     Rigidbody rigidbody = recentCube.GetComponent<Rigidbody>();
                     rigidbody.isKinematic = true;
                 }
                 //recentCube = Instantiate(spawnObject, rightHand.transform.position, rightHand.transform.rotation);
-
+                objectsPlaced.Add(recentCube);
             }            
         }
         if (currLevel == Level.LEVELTHREE)
         {
             // spawn new audio object
-            Debug.Log("instantin sou;" + EventSystem.current.currentSelectedGameObject.transform.GetChild(0).gameObject.name);
-            GameObject clone = ui.getCurrentSelectedButton();
+            GameObject clone = ui.getCurrentSelectedObject();
             if (clone != null)
             {
+                Debug.Log("instantiating sound: " + clone.name);
                 audioObject = Instantiate(clone, rightHand.transform.position, rightHand.transform.rotation);
                 audioSource = audioObject.GetComponent<AudioSource>();
+                audioObject.SetActive(true);
+                musicActive = true;
             }
         }
     }
@@ -836,7 +1095,9 @@ public class Main : MonoBehaviour
 
     public int getLevel()
     {
-        if (currLevel == Level.LEVELONE)
+        if (currLevel == Level.LEVELZERO)
+            return 0;
+        else if (currLevel == Level.LEVELONE)
             return 1;
         else if (currLevel == Level.LEVELTWO)
             return 2;

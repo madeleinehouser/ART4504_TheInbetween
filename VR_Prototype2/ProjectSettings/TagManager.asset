@@ -9,6 +9,10 @@ TagManager:
   - Lose
   - Audio
   - Door
+  - Key
+  - Door Position
+  - Repeat
+  - Ready
   layers:
   - Default
   - TransparentFX
