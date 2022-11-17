@@ -3146,7 +3146,6 @@ GameObject:
   m_Component:
   - component: {fileID: 344849744}
   - component: {fileID: 344849746}
-  - component: {fileID: 344849745}
   m_Layer: 0
   m_Name: Camera
   m_TagString: Untagged
@@ -3169,14 +3168,6 @@ Transform:
   m_Father: {fileID: 963194228}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!81 &344849745
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 344849743}
-  m_Enabled: 1
 --- !u!20 &344849746
 Camera:
   m_ObjectHideFlags: 0
@@ -4881,7 +4872,6 @@ GameObject:
   m_Component:
   - component: {fileID: 552284481}
   - component: {fileID: 552284480}
-  - component: {fileID: 552284479}
   m_Layer: 0
   m_Name: CamMain
   m_TagString: Untagged
@@ -4889,14 +4879,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!81 &552284479
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 552284478}
-  m_Enabled: 1
 --- !u!20 &552284480
 Camera:
   m_ObjectHideFlags: 0
@@ -82621,7 +82603,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1299045584
 RectTransform:
   m_ObjectHideFlags: 0
@@ -82898,7 +82880,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1376403750
 RectTransform:
   m_ObjectHideFlags: 0
@@ -84288,7 +84270,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1640679071}
   - component: {fileID: 1640679070}
-  - component: {fileID: 1640679069}
   m_Layer: 0
   m_Name: CamExt
   m_TagString: Untagged
@@ -84296,14 +84277,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!81 &1640679069
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1640679068}
-  m_Enabled: 1
 --- !u!20 &1640679070
 Camera:
   m_ObjectHideFlags: 0
@@ -86041,9 +86014,25 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6042237912919096820, guid: ec4f9a13469ee7147a276a9fc318b79b, type: 3}
+      propertyPath: m_Volume
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6042237912919096820, guid: ec4f9a13469ee7147a276a9fc318b79b, type: 3}
+      propertyPath: MaxDistance
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 6042237912919096820, guid: ec4f9a13469ee7147a276a9fc318b79b, type: 3}
       propertyPath: m_audioClip
       value: 
       objectReference: {fileID: 8300000, guid: 03ab92e26a5572d41ab37f5094002bb5, type: 3}
+    - target: {fileID: 6042237912919096820, guid: ec4f9a13469ee7147a276a9fc318b79b, type: 3}
+      propertyPath: DopplerLevel
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6042237912919096820, guid: ec4f9a13469ee7147a276a9fc318b79b, type: 3}
+      propertyPath: panLevelCustomCurve.m_Curve.Array.data[0].value
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6042237912919096823, guid: ec4f9a13469ee7147a276a9fc318b79b, type: 3}
       propertyPath: m_Name
       value: Audio 1
@@ -86747,7 +86736,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh155350
+  m_Name: pb_Mesh25254
   serializedVersion: 10
   m_SubMeshes:
   - serializedVersion: 2
@@ -91545,7 +91534,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: -0.000061035156, y: -0.000015258789}
   m_SizeDelta: {x: 40, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &6134767119993440287

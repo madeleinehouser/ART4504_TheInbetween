@@ -135,7 +135,6 @@ public class UIManager : MonoBehaviour
                     Debug.Log("want to move left or right");
                     if (currentPosX > 0 && currentPosX <= linewidth)
                     {
-                        Debug.Log("PRESSED LEFT");
                         // make sure we can move left
                         currentPosX -= 1;
                         currentSelected -= 1;
@@ -150,7 +149,6 @@ public class UIManager : MonoBehaviour
                     // make sure we can move right
                     if (currentPosX >= 0 && currentPosX < linewidth)
                     {
-                        Debug.Log("PRESSED RIGHT");
                         currentPosX += 1;
                         currentSelected += 1;
                         Debug.Log(currentSelected);
@@ -166,7 +164,6 @@ public class UIManager : MonoBehaviour
                 {
                     if (currentPosY == 1)   // make sure we can move up
                     {
-                        Debug.Log("PRESSED UP");
                         currentPosY = 0;                        
                         currentSelected -= linewidth;
                         EventSystem.current.SetSelectedGameObject(levelMenu3.transform.GetChild(currentSelected).gameObject);
@@ -179,7 +176,6 @@ public class UIManager : MonoBehaviour
                 {
                     if (currentPosY == 0) // make sure we can move down
                     {
-                        Debug.Log("PRESSED DOWN");
                         currentPosY = 1;
                         currentSelected += linewidth;
                         EventSystem.current.SetSelectedGameObject(levelMenu3.transform.GetChild(currentSelected).gameObject);

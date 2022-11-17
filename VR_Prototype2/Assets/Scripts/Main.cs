@@ -91,7 +91,19 @@ public class Main : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        player.transform.position = new Vector3(-11.87f, 2.71f, 19.01f);    // comment back in
+        // test environment
+        SceneManager.LoadScene("AudioRoom", LoadSceneMode.Additive);      // change to SpinningRoom
+        inTransition = false;                // change to true
+        currLevel = Level.LEVELTHREE;            // change to ZERO
+        status = GameStatus.RUNNING;            // change to LOAD
+
+        //SceneManager.LoadScene("SpinningRoom", LoadSceneMode.Additive);      // change to SpinningRoom
+        //player.transform.position = new Vector3(-11.87f, 2.71f, 19.01f);    // comment back in
+        //inTransition = true;                // change to true
+        //currLevel = Level.LEVELZERO;            // change to ZERO
+        //status = GameStatus.LOAD;            // change to LOAD
+
+
         leftHand = GameObject.Find("LeftHand");
         rightHand = GameObject.Find("RightHand");
         internalActive = false;              
@@ -102,7 +114,6 @@ public class Main : MonoBehaviour
         uiObj = GameObject.Find("ScreenUI");
         ui = uiObj.GetComponentInChildren<UIManager>();
         isReady = false;
-        inTransition = true;                // change to true
         currentEnabledKey = null;
         win.SetActive(false);
         lose.SetActive(false);
@@ -113,13 +124,10 @@ public class Main : MonoBehaviour
         level3Instr = instrObj3.GetComponent<AudioSource>();
         selectedButton = false;
 
-        SceneManager.LoadScene("SpinningRoom", LoadSceneMode.Additive);      // change to SpinningRoom
         levelOneTotalDuration = levelOnePlayerDuration + levelOneDemonDuration;
         popUpDuration = 5f;
         doorVisibleTime = 10f;
         startTime = 0;
-        currLevel = Level.LEVELZERO;            // change to ZERO
-        status = GameStatus.LOAD;            // change to LOAD
 
         // ----- set level 1 vars
         keyEnabled = false;
@@ -353,7 +361,6 @@ public class Main : MonoBehaviour
             // check if internal player touched key
             if (h == "LeftHand" && obj.gameObject.tag == "Key" && !internalActive)
             {
-                Debug.Log("TOUCHED KEY");
                 Destroy(obj);
                 keysHeld++;
                 keyEnabled = false;

@@ -8,9 +8,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/AudioRoom.unity
     guid: a214e4dbff383fb4b96fbc9a29082876
-  - enabled: 1
-    path: Assets/Scenes/AudioRoom.unity
-    guid: 2253882e59411cc44bc701e6a87a93e7
+  - enabled: 0
+    path: 
+    guid: 00000000000000000000000000000000
   - enabled: 1
     path: Assets/Scenes/ClutterRoom.unity
     guid: 4febe589a9ef175469137b7c863fcd80
