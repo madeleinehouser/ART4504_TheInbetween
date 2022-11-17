@@ -5539,7 +5539,7 @@ MonoBehaviour:
   followSpeed: 0
   musicCollected: 0
   soundDist: 0
-  levelThreeTotalDuration: 60
+  levelThreeTotalDuration: 120
 --- !u!1001 &636634950
 PrefabInstance:
   m_ObjectHideFlags: 0

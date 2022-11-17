@@ -110,7 +110,7 @@ GameObject:
   - component: {fileID: 6042237912919096820}
   - component: {fileID: 6042237912919096821}
   m_Layer: 0
-  m_Name: Audio Beep
+  m_Name: Audio Object
   m_TagString: Audio
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

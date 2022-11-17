@@ -259,10 +259,10 @@ public class Main : MonoBehaviour
                             isReady = false;
                             player.transform.position = Vector3.zero;
                             // destroy all the objects that were spawned by external player
-                            for (int i = 0; i < objectsPlaced.Count; i++)
-                            {
-                                Destroy(objectsPlaced[i]);
-                            }
+                            //for (int i = 0; i < objectsPlaced.Count; i++)
+                            //{
+                            //   Destroy(objectsPlaced[i]);
+                            //}
                             status = GameStatus.RUNNING;
                             startTime = Time.time;
                             //internalActive = true;
@@ -288,11 +288,11 @@ public class Main : MonoBehaviour
                             inTransition = false;
                             isReady = false;
                             player.transform.position = Vector3.zero;
-                            if (musicActive)
-                            {
-                                Destroy(audioObject);
-                                musicActive = false;
-                            }
+                            //if (musicActive)
+                            //{
+                            //    Destroy(audioObject);
+                            //    musicActive = false;
+                            // }
                             startTime = Time.time;
                             currLevel = Level.LEVELTHREE;
                             status = GameStatus.RUNNING;
@@ -310,11 +310,12 @@ public class Main : MonoBehaviour
                             inTransition = false;
                             isReady = false;
                             player.transform.position = Vector3.zero;
-                            if (musicActive)
-                            {
-                                Destroy(audioObject);
-                                musicActive = false;
-                            }
+                            //Debug.Log(musicActive);
+                            //if (musicActive)
+                            //{
+                            //    Destroy(audioObject);
+                            //    musicActive = false;
+                            //}
                             status = GameStatus.RUNNING;
                             startTime = Time.time;
                             //internalActive = true;
@@ -505,6 +506,11 @@ public class Main : MonoBehaviour
                 // check if player collided with door, move to transition room
                 if (h == "LeftHand" && obj.gameObject.tag == "Door")
                 {
+                    // destroy all the objects that were spawned by external player
+                    for (int i = 0; i < objectsPlaced.Count; i++)
+                    {
+                        Destroy(objectsPlaced[i]);
+                    }
                     if (hasWon)
                     {
                         status = GameStatus.WON;
@@ -591,6 +597,13 @@ public class Main : MonoBehaviour
                 // check if player collided with door, move to transition room
                 if (h == "LeftHand" && obj.gameObject.tag == "Door")
                 {
+                    // check if music still playing, if it is, destroy object
+                    if (musicActive)
+                    {
+                        Destroy(audioObject);
+                        musicActive = false;
+                    }
+
                     if (hasWon)
                     {
                         status = GameStatus.WON;
@@ -598,7 +611,7 @@ public class Main : MonoBehaviour
                         win.SetActive(true);
                         lose.SetActive(false);
                         restartLevel.SetActive(false);
-                        nextLevel.SetActive(false);
+                        nextLevel.SetActive(false);                        
                         player.transform.position = transportPlayer;
                         inTransition = true;
                         internalActive = false;
@@ -610,7 +623,7 @@ public class Main : MonoBehaviour
                         status = GameStatus.LOST;
                         keysHeld--;
                         inTransition = true;
-                        player.transform.position = transportPlayer;
+                        player.transform.position = transportPlayer;                        
                         // check how many lives player has left, if 0, transport to "lose" room
                         if (keysHeld <= 0)
                         {
@@ -874,7 +887,7 @@ public class Main : MonoBehaviour
                 internalActive = false;
                 externalActive = false;
 
-                if (musicCollected >= 3) 
+                if (musicCollected >= 3)
                 {
                     Debug.Log("player has beat level three!");
                     hasWon = true;
